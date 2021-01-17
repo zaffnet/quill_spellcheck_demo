@@ -124,6 +124,7 @@
 
     // This listens to user selection event and based on that displays the tooltip
     quill.on('selection-change', function (range) {
+	    $("grammarly-extension").remove();
         if (range && range.length !== 0 && [range.index, range.length] in corrections) {
             let cur_corrections = corrections[[range.index, range.length]];
             let suggestions = cur_corrections['suggestions'];
