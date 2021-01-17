@@ -65,6 +65,40 @@
 <script src="js/jquery-3.5.1.slim.min.js"></script>
 
 <script>
+    /*  ----------------- Some boilerplate stuff ----------------- */
+    let timout_var;
+
+    function timeout_loader() {
+        timout_var = setTimeout(showPage, 200);
+    }
+
+    function showPage() {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("main_jumbo").style.display = "block";
+        $("grammarly-extension").remove();
+        $("#editor").trigger("click");
+        $(".ql-editor").trigger("click");
+        $("editor").focus();
+        document.getElementById('editor').focus();
+        document.getElementsByClassName('ql-editor')[0].focus();
+        try {
+            document.getElementById('editor').select();
+            document.getElementsByClassName('ql-editor')[0].select();
+        } catch (e) {
+            console.log(e);
+        }
+
+        console.log('page loaded');
+    }
+
+    function disableGrammarly() {
+        $("grammarly-extension").remove();
+    }
+
+    disableGrammarly();
+    /*  ----------------- END boilerplate stuff ----------------- */
+
+
     // Initialize Quill object
     let quill;
     quill = new Quill('#editor', {
@@ -121,7 +155,7 @@
 
     // This listens to user selection event and based on that displays the tooltip
     quill.on('selection-change', function (range) {
-	    $("grammarly-extension").remove();
+        $("grammarly-extension").remove();
         if (range && range.length !== 0 && [range.index, range.length] in corrections) {
             let cur_corrections = corrections[[range.index, range.length]];
             let suggestions = cur_corrections['suggestions'];
@@ -129,7 +163,7 @@
             let actualLength = cur_corrections['actualLength'];
 
             if (suggestions.length === 0) {
-	            $("grammarly-extension").remove();
+                $("grammarly-extension").remove();
                 return;
             }
             let bounds = quill.getBounds(actualStart, actualLength);
@@ -142,7 +176,7 @@
             suggestionTooltip.show();
             suggestionTooltip.position(bounds);
         } else {
-	        $("grammarly-extension").remove();
+            $("grammarly-extension").remove();
             suggestionTooltip.hide();
         }
 
@@ -150,24 +184,5 @@
 
     $(document).ready(highlightMisspellings());
     $("grammarly-extension").remove();
-
-
-    let timout_var;
-
-    function timeout_loader() {
-        timout_var = setTimeout(showPage, 200);
-    }
-
-    function showPage() {
-        document.getElementById("loader").style.display = "none";
-        document.getElementById("main_jumbo").style.display = "block";
-        $("grammarly-extension").remove();
-    }
-
-	function disableGrammarly() {
-		$("grammarly-extension").remove();
-    }
-
-	disableGrammarly();
 
 </script>
