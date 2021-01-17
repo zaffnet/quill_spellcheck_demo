@@ -58,13 +58,12 @@ function isOOV(word) {
 
 
 /*
-TODO: This should consider case_sensitive=False
 E.g.,
     getSuggestions("whre?") = ["where?", "here?"]
 */
 function getSuggestions(token) {
     'use strict';
-    var [start, word, end] = splitToken(token);
+    let [start, word, end] = splitToken(token);
 
     if (!isOOV(word)) {
         return [];

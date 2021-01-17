@@ -52,7 +52,8 @@
 
 <script>
     // Initialize Quill object
-    var quill = new Quill('#editor', {
+    let quill;
+    quill = new Quill('#editor', {
         theme: 'snow',
         modules: {
             toolbar: false
@@ -67,7 +68,7 @@
         A mapping of:
 		[word_start_index, word_length] => [word, suggestions_list]
 	*/
-    var corrections = {};
+    let corrections = {};
 
     // Highlights misspelled words in red
     function highlightMisspellings() {
@@ -83,7 +84,7 @@
             let suggestions = getSuggestions(token);
             if (suggestions.length !== 0) {
                 quill.formatText(start, token.length, 'color', 'red', 'api');
-                let [token_start, word, token_end] = splitToken(token);
+                let [token_start, word] = splitToken(token);
                 corrections[[start + token_start.length, word.length]] = {
                     'token': token,
                     'suggestions': suggestions,
@@ -105,26 +106,25 @@
     }
 
     // This listens to user selection event and based on that displays the tooltip
-    quill.on('selection-change', function (range, oldRange, source) {
+    quill.on('selection-change', function (range) {
         if (range && range.length !== 0 && [range.index, range.length] in corrections) {
-            var word = quill.getText(range.index, range.length);
-            suggestions = corrections[[range.index, range.length]]['suggestions'];
-            actualStart = corrections[[range.index, range.length]]['actualStart'];
-            actualLength = corrections[[range.index, range.length]]['actualLength'];
+            let cur_corrections = corrections[[range.index, range.length]];
+            let suggestions = cur_corrections['suggestions'];
+            let actualStart = cur_corrections['actualStart'];
+            let actualLength = cur_corrections['actualLength'];
 
-            if (suggestions.length !== 0) {
-                bounds = quill.getBounds(actualStart, actualLength);
-
-                suggestionTooltip.root.innerHTML = '';
-                for (suggest of suggestions) {
-                    suggestionTooltip.root.innerHTML += `
-             <a onclick='applySuggestion(${actualStart}, ${actualLength}, "${suggest}")'>${suggest}</a></br>
-            `
-                }
-                suggestionTooltip.show();
-                suggestionTooltip.position(bounds);
-
+            if (suggestions.length === 0) {
+                return;
             }
+            let bounds = quill.getBounds(actualStart, actualLength);
+            suggestionTooltip.root.innerHTML = '';
+            for (let suggest of suggestions) {
+                suggestionTooltip.root.innerHTML += `
+         <a onclick='applySuggestion(${actualStart}, ${actualLength}, "${suggest}")'>${suggest}</a></br>
+        `
+            }
+            suggestionTooltip.show();
+            suggestionTooltip.position(bounds);
         } else {
             suggestionTooltip.hide();
         }
@@ -133,7 +133,7 @@
 
     $(document).ready(highlightMisspellings());
 
-    var timout_var;
+    let timout_var;
 
     function timeout_loader() {
         timout_var = setTimeout(showPage, 100);
