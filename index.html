@@ -1,35 +1,60 @@
 <link href="css/quill.snow.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
       integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 
-<body>
+<body onload="timeout_loader()">
+<div id="loader"></div>
 <main style="padding: 10px; margin: 20px;">
+	<div class="jumbotron" style="display:none;" id="main_jumbo">
+		<h3>Quill Spellcheck Demo</h3>
+		<h6>Double click on highlighted words</h6>
 
-	<h3>Quill Spellcheck Demo</h3>
-	<h6>Double click on highlighted words</h6>
+		<div class="row">
 
-	<div class="row">
+			<div id="editor" spellcheck="false" class="col-md-6" style="height: 512px">
+				Yeeah, yeah I know I, I almost kind of have to take, take an entire fresh look at my calendar most of
+				the day this week, I, um, permittedd to get to fillled up and what's resulted in every meeting, uh,
+				has gone over every meeting when it ends I'm already late for the next one and I've got like five
+				emails I've gotta write out and three to dos from it but I'm fine just cripple on a piece of paper
+				and last niht it didn't ended till six o'clock, I ate dinner and I have here till ten o'clock trying
+				to catch up on all the stuff I was behind off. Um, I'm not willing to live like that, so &lt;laughter&gt;
+				I've got to do something, soo, so, um, you know, sort of the same, sort of thing I don't know if
+				I need to bock off a certain trunk of, uh, you know my morning time everyday so that I can work on
+				things that are sort of my agenda items and then, then react, so~ [[Mikka]]
+				So I, I think we overshot it but, uh, we're doing it right now, we, we, we, we do, we do think we can
+				get, um, around sixty to seventy, I, I believe so, uh, we're, we're reviewing it one by one just to
+				make sure that they're not frequent fleyrs to the hopital, they have all the eligibility in place but
+				I think I overshot a little bit last, on the last call, um, but I ((gues)), yeah, like I said we're,
+				we're, we're aiming to, you know, five to six, uh, uh, a week and, uh, and hopefully we can increase
+				that
+				as well. &lt;int&gt;
+				&lt;int&gt; &lt;sta&gt; Yeah, that would be great. Um, yeah, [Ric] one of the, one of the, yeah, that's
+				great. One of the, we've been tallking about the budgets. Yeah, like various budgets for a while. Um,
+				and I wanna, we just need to do that, we need to have that meeting in the next couple of weeks. Uh, but
+				if we subscribe, I know, we're probably getting thin on cash on gambit. If we get these last two years
+				next then. Well, two and a half units we should be fine. &lt;/sta&gt;
+			</div>
 
-		<div id="editor" spellcheck="false" class="col-md-6" style="height: 512px">
-			text goes here. Very few words in the lexicon right now, So only two words will be
-			highlighted: aapl and Zfar
-			Also, no punctuation and case-insensitive handling
-			Few more words: syll and absense goverment
+
 		</div>
 
+		<button type="button" class="btn btn-primary" style="margin-top: 30px" onclick="highlightMisspellings()">
+			Check Spelling
+		</button>
 
 	</div>
 
-	<button type="button" class="btn btn-primary" style="margin-top: 30px" onclick="highlightMisspellings()">
-		Check Spelling
-	</button>
 
 </main>
 </body>
 
 
+<script src="js/words.js"></script>
+<script src="js/fuzzyset.js"></script>
 <script src="js/quill.js"></script>
+<script src="js/spellcheck.js"></script>
 <script src="js/jquery-3.5.1.slim.min.js"></script>
 
 <script>
@@ -45,58 +70,36 @@
     const Tooltip = Quill.import('ui/tooltip');
     let myTooltip = new Tooltip(quill);
 
-
-    // TODO: Placeholder lexicon; change this to actual lexicon
-    var lexicon = ['apple', 'balloon', 'cake', 'doll', 'engine', 'fan'];
-
     /*
-	  A mapping of:
+        A mapping of:
 		[word_start_index, word_length] => [word, suggestions_list]
 	*/
     var corrections = {};
-
-    /*
-	   TODO: placeholder getSuggestions function;
-	   TODO: Use Spellcheck API here
-	   TODO: This should consider case_sensitive=False
-	   TODO: Also, handle punctuations, parenthesis
-	   E.g.,
-		   getSuggestions("whre?") = ["where?", "here?"]
-	*/
-    function getSuggestions(word) {
-
-        if (word in lexicon) {
-            return [];
-        }
-        // Limited correction set. Should be replaced by an API call
-        let suggestions = {
-            'aapl': ['apple'],
-            'syll': ['sell', 'lyll', 'jill'],
-            'Zfar': ['Zafar'],
-            'absense': ['absence'],
-            'goverment': ['Government']
-        };
-        return (typeof suggestions[word] !== "undefined") ? suggestions[word] : [];
-    }
 
     // Highlights misspelled words in red
     function highlightMisspellings() {
         // clean the text: remove any carriage returns, double spaces, etc.
         let cleaned_text = quill.getText().replace(/[\n\r]+/g, '').replace(/\s{2,10}/g, ' ');
-        let words = cleaned_text.split(' ');
+        let tokens = cleaned_text.split(' ');
         quill.setText(cleaned_text);
         quill.formatText('color', 'black');
 
         corrections = {};
         let start = 0;
-        for (const word of words) {
-            let suggestions = getSuggestions(word);
+        for (const token of tokens) {
+            let suggestions = getSuggestions(token);
             if (suggestions.length !== 0) {
-                quill.formatText(start, word.length, 'color', 'red', 'api');
-                corrections[[start, word.length]] = {'word': word, 'suggestions': suggestions};
+                quill.formatText(start, token.length, 'color', 'red', 'api');
+                let [token_start, word, token_end] = splitToken(token);
+                corrections[[start + token_start.length, word.length]] = {
+                    'token': token,
+                    'suggestions': suggestions,
+                    'actualStart': start,
+                    'actualLength': token.length
+                };
             }
 
-            start += word.length + 1  // +1 for space
+            start += token.length + 1  // +1 for space
         }
     }
 
@@ -113,13 +116,16 @@
         if (range && range.length !== 0 && [range.index, range.length] in corrections) {
             var word = quill.getText(range.index, range.length);
             suggestions = corrections[[range.index, range.length]]['suggestions'];
+            actualStart = corrections[[range.index, range.length]]['actualStart'];
+            actualLength = corrections[[range.index, range.length]]['actualLength'];
 
             if (suggestions.length !== 0) {
-                bounds = quill.getBounds(range.index);
+                bounds = quill.getBounds(actualStart, actualLength);
+
                 myTooltip.root.innerHTML = '';
                 for (suggest of suggestions) {
                     myTooltip.root.innerHTML += `
-             <a onclick='applySuggestion(${range.index}, ${range.length}, "${suggest}")'>${suggest}</a></br>
+             <a onclick='applySuggestion(${actualStart}, ${actualLength}, "${suggest}")'>${suggest}</a></br>
             `
                 }
                 myTooltip.show();
@@ -133,6 +139,17 @@
     });
 
     $(document).ready(highlightMisspellings());
+
+    var timout_var;
+
+    function timeout_loader() {
+        timout_var = setTimeout(showPage, 100);
+    }
+
+    function showPage() {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("main_jumbo").style.display = "block";
+    }
 
 
 </script>
