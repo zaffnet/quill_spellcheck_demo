@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link href="css/quill.snow.css" rel="stylesheet">
 
-<body onload="timeout_loader(); disableGrammarly()" class="bg-light d-flex flex-column h-100">
+<body onload="timeout_loader();" class="bg-light d-flex flex-column h-100">
 <div id="loader"></div>
 
 <main style="padding: 10px; margin: 20px;" class="flex-shrink-0">
@@ -75,20 +75,6 @@
     function showPage() {
         document.getElementById("loader").style.display = "none";
         document.getElementById("main_jumbo").style.display = "block";
-        $("grammarly-extension").remove();
-        $("#editor").trigger("click");
-        $(".ql-editor").trigger("click");
-        $("editor").focus();
-        document.getElementById('editor').focus();
-        document.getElementsByClassName('ql-editor')[0].focus();
-        try {
-            document.getElementById('editor').select();
-            document.getElementsByClassName('ql-editor')[0].select();
-        } catch (e) {
-            console.log(e);
-        }
-
-        console.log('page loaded');
     }
 
     function disableGrammarly() {
@@ -163,7 +149,6 @@
             let actualLength = cur_corrections['actualLength'];
 
             if (suggestions.length === 0) {
-                $("grammarly-extension").remove();
                 return;
             }
             let bounds = quill.getBounds(actualStart, actualLength);
@@ -176,7 +161,6 @@
             suggestionTooltip.show();
             suggestionTooltip.position(bounds);
         } else {
-            $("grammarly-extension").remove();
             suggestionTooltip.hide();
         }
 
