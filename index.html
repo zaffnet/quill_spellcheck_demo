@@ -37,6 +37,9 @@
 		<button type="button" class="btn btn-primary" style="margin-top: 30px" onclick="highlightMisspellings()">
 			Check Spelling
 		</button>
+		<button type="button" class="btn btn-primary" style="margin-top: 30px" onclick="disableGrammarly(); highlightMisspellings()">
+			Disable Grammarly
+		</button>
 
 	</div>
 </main>
@@ -150,7 +153,7 @@
     let timout_var;
 
     function timeout_loader() {
-        timout_var = setTimeout(showPage, 1500);
+        timout_var = setTimeout(showPage, 200);
     }
 
     function showPage() {
@@ -159,13 +162,8 @@
         $("grammarly-extension").remove();
     }
 
-    let displayPage = function () {
-	    document.getElementById("loader").style.display = "none";
-        document.getElementById("main_jumbo").style.display = "block";
-        $("grammarly-extension").remove();
-    };
-    window.onload = function () {
-        setTimeout(displayPage, 3000);
+	function disableGrammarly() {
+		$("grammarly-extension").remove();
     }
 
 </script>
