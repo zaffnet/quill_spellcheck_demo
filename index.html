@@ -1,0 +1,142 @@
+<link href="css/quill.snow.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+
+
+<body>
+<main style="padding: 10px; margin: 20px;">
+
+	<h3>Quill Spellcheck Demo</h3>
+	<h6>Double click on highlighted words</h6>
+
+	<div class="row">
+
+		<div id="editor" spellcheck="false" class="col-md-6" style="height: 512px">
+			text goes here. Very few words in the lexicon right now, So only two words will be
+			highlighted: aapl and Zfar
+			Also, no punctuation and case-insensitive handling
+			Few more words: syll and absense goverment
+		</div>
+
+
+	</div>
+
+	<button type="button" class="btn btn-primary" style="margin-top: 30px" onclick="highlightMisspellings()">
+		Check Spelling
+	</button>
+
+</main>
+</body>
+
+
+<script src="js/quill.js"></script>
+<script src="js/jquery-3.5.1.slim.min.js"></script>
+
+<script>
+    // Initialize Quill object
+    var quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: false
+        }
+    });
+
+    // Tooltip is used to show suggestions
+    const Tooltip = Quill.import('ui/tooltip');
+    let myTooltip = new Tooltip(quill);
+
+
+    // TODO: Placeholder lexicon; change this to actual lexicon
+    var lexicon = ['apple', 'balloon', 'cake', 'doll', 'engine', 'fan'];
+
+    /*
+	  A mapping of:
+		[word_start_index, word_length] => [word, suggestions_list]
+	*/
+    var corrections = {};
+
+    var begin_chars = "**";
+    var end_chars = "?.,:!";
+    special_symbols = [];
+
+    /*
+	   TODO: placeholder getSuggestions function;
+	   TODO: Use Spellcheck API here
+	   TODO: This should consider case_sensitive=False
+	   TODO: Also, handle punctuations, parenthesis
+	   E.g.,
+		   getSuggestions("whre?") = ["where?", "here?"]
+	*/
+    function getSuggestions(word) {
+
+        if (word in lexicon) {
+            return [];
+        }
+        // Limited correction set. Should be replaced by an API call
+        let suggestions = {
+            'aapl': ['apple'],
+            'syll': ['sell', 'lyll', 'jill'],
+            'Zfar': ['Zafar'],
+            'absense': ['absence'],
+            'goverment': ['Government']
+        };
+        return (typeof suggestions[word] !== "undefined") ? suggestions[word] : [];
+    }
+
+    // Highlights misspelled words in red
+    function highlightMisspellings() {
+        // clean the text: remove any carriage returns, double spaces, etc.
+        let cleaned_text = quill.getText().replace(/[\n\r]+/g, '').replace(/\s{2,10}/g, ' ');
+        let words = cleaned_text.split(' ');
+        quill.setText(cleaned_text);
+        quill.formatText('color', 'black');
+
+        corrections = {};
+        let start = 0;
+        for (const word of words) {
+            let suggestions = getSuggestions(word);
+            if (suggestions.length !== 0) {
+                quill.formatText(start, word.length, 'color', 'red', 'api');
+                corrections[[start, word.length]] = {'word': word, 'suggestions': suggestions};
+            }
+
+            start += word.length + 1  // +1 for space
+        }
+    }
+
+    // Use suggestion from tooltip to change the selected text
+    function applySuggestion(start, length, suggestion) {
+        quill.deleteText(start, length, 'api');
+        quill.insertText(start, suggestion, 'api');
+        myTooltip.hide();
+        highlightMisspellings();
+    }
+
+    // This listens to user selection event and based on that displays the tooltip
+    quill.on('selection-change', function (range, oldRange, source) {
+        if (range && range.length !== 0 && [range.index, range.length] in corrections) {
+            var word = quill.getText(range.index, range.length);
+            suggestions = corrections[[range.index, range.length]]['suggestions'];
+
+            if (suggestions.length !== 0) {
+                bounds = quill.getBounds(range.index);
+                myTooltip.root.innerHTML = '';
+                for (suggest of suggestions) {
+                    myTooltip.root.innerHTML += `
+             <a onclick='applySuggestion(${range.index}, ${range.length}, "${suggest}")'>${suggest}</a></br>
+            `
+                }
+                myTooltip.show();
+                myTooltip.position(bounds);
+
+            }
+        } else {
+            myTooltip.hide();
+        }
+
+    });
+
+    $(document).ready(highlightMisspellings());
+
+
+</script>
