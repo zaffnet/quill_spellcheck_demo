@@ -68,7 +68,7 @@
 
     // Tooltip is used to show suggestions
     const Tooltip = Quill.import('ui/tooltip');
-    let myTooltip = new Tooltip(quill);
+    let suggestionTooltip = new Tooltip(quill);
 
     /*
         A mapping of:
@@ -107,7 +107,7 @@
     function applySuggestion(start, length, suggestion) {
         quill.deleteText(start, length, 'api');
         quill.insertText(start, suggestion, 'api');
-        myTooltip.hide();
+        suggestionTooltip.hide();
         highlightMisspellings();
     }
 
@@ -122,18 +122,18 @@
             if (suggestions.length !== 0) {
                 bounds = quill.getBounds(actualStart, actualLength);
 
-                myTooltip.root.innerHTML = '';
+                suggestionTooltip.root.innerHTML = '';
                 for (suggest of suggestions) {
-                    myTooltip.root.innerHTML += `
+                    suggestionTooltip.root.innerHTML += `
              <a onclick='applySuggestion(${actualStart}, ${actualLength}, "${suggest}")'>${suggest}</a></br>
             `
                 }
-                myTooltip.show();
-                myTooltip.position(bounds);
+                suggestionTooltip.show();
+                suggestionTooltip.position(bounds);
 
             }
         } else {
-            myTooltip.hide();
+            suggestionTooltip.hide();
         }
 
     });
