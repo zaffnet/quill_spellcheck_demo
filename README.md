@@ -2,8 +2,7 @@
 
 Spellcheck in a WYSIWYG Editor. I have modified the Tooltip provided by [Quill](https://quilljs.com/) to suggest words.
 
-## How to use
-Run `index.html`
+### [Click for a demo](https://zaffnet.github.io/quill_spellcheck_demo/)
 
 ## Dependencies
 * [quill.js](https://quilljs.com/) - WYSIWYG Text Editor
